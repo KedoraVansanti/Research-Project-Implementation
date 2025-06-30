@@ -48,29 +48,29 @@ Cement2$type <- "cemented"
 combined_data <- rbind(Cement1, Cement2)
 boxplot(Length ~ type,
         data = combined_data,
-        col = c("#D81B60", "#1E88E5"),
+        col = c("#ff7c00", "#002bff"),
         xlab = "cell type",
         ylab = "cell length (µm)",
         main = "cell lengths by type",
         notch=FALSE )
 legend("topright",
        legend = c("cemented", "non-cemented"),
-       fill = c("#D81B60", "#1E88E5"),
+       fill = c("#ff7c00", "#002bff"),
        title = "cell type")
 
 
 #scatterplot: X and Y- coordinates plotted per cell type
 x11()
 plot(Proj$X, Proj$Y,
-     col = ifelse(Proj$Cement..1.No.2.Yes. == "1", "#D81B60", "#1E88E5"),
-     pch = 16,        
+     col = ifelse(Proj$Cement..1.No.2.Yes. == "1", "#ff7c00", "#002bff"),
+     pch = 16,
      xlab = "X coordinate (µm)", ylab = "Y coordinate (µm)",
-     main = "cell coordinates by type"
-     #,xlim=c(-10000, 15000)
+     main = "cell coordinates by type",
+     xlim=c(-450, 650)
 )
 
 legend("topleft", legend = c("non-cemented", "cemented"),
-       col = c("#D81B60", "#1E88E5"), pch = 16)
+       col = c("#ff7c00", "#002bff"), pch = 16)
 
 #plotting length per y-coordinate
 install.packages("zoo")
@@ -82,17 +82,21 @@ chrono_dat$Length <- cumsum(chrono_dat$Length) #previous length gets added to cu
 
 
 x11()
+# Create a color vector based on cementation type
+colours <- ifelse(length_dat$Cement..1.No.2.Yes. == "1", "antiquewhite3", "black")
+#reorder length and colours by y-coordinate
 length <- length_dat[order(length_dat$Y),]
+colours <- colours[order(length_dat$Y)]  
 plot(length$Y, length$Length,
-     col= "lightgrey",
+     col= colours,
      pch = 16,
-     xlab = "Y coordinate", ylab= "cell length (µm)",
+     xlab = "Y coordinate (µm)", ylab= "cell length (µm)",
      main = "length per Y coordinate"
     
 )
 #add rolling mean
 lines(length$Y, rollmean(length$Length, k=7, fill=NA),
-      col = "#07afaf", lwd = 2
+      col = "#07afaf", lwd = 3
 )
 #add chronological markers     
 abline(v = chrono_dat$Length,
@@ -112,12 +116,11 @@ text(x = chrono_dat$Length,
 
 
 legend("topright",
-        legend = c("cell length", "rolling mean (k=7)", "chronological marker"),
-        col = c("lightgrey", "#07afaf", "#FFC107"),
-        pch = c(16, NA, NA),
-        lty = c(NA, 1, 2),
-        lwd = c(NA, 2, 2)
-       
+       legend = c("non-cemented", "cemented", "rolling mean (k=7)", "chronological marker"),
+       col = c("antiquewhite3", "black", "#07afaf", "#FFC107"),
+       pch = c(16, 16, NA, NA),
+       lty = c(NA, NA, 1, 2),
+       lwd = c(NA, NA, 2, 2)
 )
 
    
@@ -126,19 +129,22 @@ legend("topright",
 #only width (without length)
 width_dat <- Proj[which(Proj$Task == "Width"),]
 
-#Creating data frame with all relevant information (Y, length, width, cell-nr.)
+#Creating data frame with all relevant information (Y, length, width, cell-nr.,cell type)
 df <- data.frame(1:1254) #empty dataframe with same row number as cell number
 df$Cell.Nr<- length_dat$Cell.Nr
 df$Y <- length_dat$Y
 df$Length <- length_dat$Length
 df$Width<- width_dat$Length
 df$Area <- df$Length*df$Width
+df$type <- width_dat$Cement..1.No.2.Yes.
 
 #plot area with y-coordinate
 x11()
+colours <- ifelse(df$type == "1", "antiquewhite3", "black")
 area <- df[order(df$Y),]
+colours <- colours[order(df$Y)]  
 plot(area$Y, area$Area,
-     col= "lightgrey",
+     col= colours,
      pch = 16, 
      xlab = "Y coordinate", ylab= "cell area (μm²)",
      main = "area per Y coordinate"
@@ -155,7 +161,7 @@ abline(v = chrono_dat$Length,
 )
 
 text(x = chrono_dat$Length,
-     y = 19.5,  
+     y = 245.5,  
      labels = chrono_dat$Year,
      srt = 90,            
      pos = 4,             
@@ -164,12 +170,16 @@ text(x = chrono_dat$Length,
 )
 
 legend("topright",
-       legend = c("cell area", "rolling mean (k=7)", "chronological marker"),
-       col = c("lightgrey", "#07afaf", "#FFC107"),
-       pch = c(16, NA, NA),
-       lty = c(NA, 1, 2),
-       lwd = c(NA, 2, 2)
+       legend = c("non-cemented", "cemented", "rolling mean (k=7)", "chronological marker"),
+       col = c("antiquewhite3","black", "#07afaf", "#FFC107"),
+       pch = c(16, 16, NA, NA),
+       lty = c(NA, NA, 1, 2),
+       lwd = c(NA,NA, 2, 2)
 )
 
-######################
+#mean length per year in µm and cell layers per year
 meanLengthperYear <- (max(chrono_dat$Length)- min(chrono_dat$Length))/30
+#mean cell length
+averageLength<- mean(length_dat$Length)
+cellLayers <- meanLengthperYear/averageLength
+cellLayers
